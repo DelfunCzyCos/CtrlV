@@ -6,6 +6,8 @@ import { lazy, Suspense } from 'react';
 
 const LoginAdmin = lazy(() => import('./components/auth/LoginAdmin'));
 const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard'));
+const AdminDetail = lazy(() => import('./components/admin/AdminDetail'));
+
 
 const root = createRoot(document.getElementById("root")!);
 
@@ -20,6 +22,7 @@ root.render(
                 <Route path="/" element={<App />} />
                 <Route path="/admin" element={<LoginAdmin />} />
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/detail/:movieId" element={<AdminDetail />} />
                 <Route path="*" element={<App />} />
             </Routes>
         </Suspense>

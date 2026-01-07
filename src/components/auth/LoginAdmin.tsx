@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 const ADMIN_CREDENTIALS = {
     username: 'admin',
-    password: 'admin123'
+    password: 'admin'
 };
 
 export type LogEntry = {
