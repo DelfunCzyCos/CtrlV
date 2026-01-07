@@ -73,9 +73,11 @@ const LoginAdmin: React.FC = () => {
 
     React.useEffect(() => {
         const isAuth = localStorage.getItem('admin_authenticated');
+        /*
         if (isAuth === 'true') {
             navigate('/admin/dashboard');
         }
+        */
     }, [navigate]);
 
     return (
