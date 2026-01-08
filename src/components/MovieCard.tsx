@@ -14,8 +14,7 @@ export function MovieCard({ movie }: MovieCardProps) {
         alt={movie.title}
         className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-0"
       />
-      
-      {/* Hover Card */}
+
       <div className="absolute inset-0 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-zinc-900 shadow-xl rounded-md flex flex-col overflow-hidden">
          <img
           src={movie.imageUrl}
@@ -39,7 +38,7 @@ export function MovieCard({ movie }: MovieCardProps) {
                         <ChevronDown className="w-4 h-4" />
                     </Button>
             </div>
-            
+
             <div className="mt-2">
                 <div className="flex items-center gap-2 text-[10px] text-gray-400 font-semibold">
                      <span className="text-green-400">98% trafności</span>
