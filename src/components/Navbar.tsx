@@ -3,15 +3,17 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useState, useRef, useEffect } from "react";
 import { PLATFORMS, categories as MOVIE_CATEGORIES, movies } from "../data/movies";
+import { FavoriteButton } from "./FavoriteButton";
 
 interface NavbarProps {
     onBack?: () => void;
     showBack?: boolean;
     onSearch: (query: string) => void;
     onFiltersChange?: (filters: { platforms: string[]; categories: string[]; directors: string[] }) => void;
+    onSelectFavorite?: (id: string) => void; // nowy prop
 }
 
-export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarProps) {
+export function Navbar({ onBack, showBack, onSearch, onFiltersChange, onSelectFavorite }: NavbarProps) {
     const [inputValue, setInputValue] = useState("");
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [showFilters, setShowFilters] = useState(false);
@@ -192,9 +194,7 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
                                             onClick={() => setExpandPlatforms((s) => !s)}
                                             className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
                                         >
-                                            <ChevronDown
-                                                className={`w-4 h-4 transition-transform ${expandPlatforms ? "rotate-180" : ""}`}
-                                            />
+                                            <ChevronDown className={`w-4 h-4 transition-transform ${expandPlatforms ? "rotate-180" : ""}`} />
                                         </button>
                                     </div>
                                     {expandPlatforms && (
@@ -208,9 +208,9 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
                                                         className="accent-red-600 w-4 h-4"
                                                     />
                                                     <span className="flex items-center gap-2">
-                                                        <span className={`w-3 h-3 rounded-sm ${p.color}`} />
+                            <span className={`w-3 h-3 rounded-sm ${p.color}`} />
                                                         {p.name}
-                                                    </span>
+                          </span>
                                                 </label>
                                             ))}
                                         </div>
@@ -226,9 +226,7 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
                                             onClick={() => setExpandCategories((s) => !s)}
                                             className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
                                         >
-                                            <ChevronDown
-                                                className={`w-4 h-4 transition-transform ${expandCategories ? "rotate-180" : ""}`}
-                                            />
+                                            <ChevronDown className={`w-4 h-4 transition-transform ${expandCategories ? "rotate-180" : ""}`} />
                                         </button>
                                     </div>
                                     {expandCategories && (
@@ -257,9 +255,7 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
                                             onClick={() => setExpandDirectors((s) => !s)}
                                             className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
                                         >
-                                            <ChevronDown
-                                                className={`w-4 h-4 transition-transform ${expandDirectors ? "rotate-180" : ""}`}
-                                            />
+                                            <ChevronDown className={`w-4 h-4 transition-transform ${expandDirectors ? "rotate-180" : ""}`} />
                                         </button>
                                     </div>
                                     {expandDirectors && (
@@ -301,10 +297,7 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
                     </div>
 
                     {/* Search button — to the right of the input */}
-                    <Button
-                        onClick={() => onSearch(inputValue)}
-                        className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 h-10 md:h-12"
-                    >
+                    <Button onClick={() => onSearch(inputValue)} className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 h-10 md:h-12">
                         Szukaj
                     </Button>
 
@@ -326,13 +319,7 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
 
                     {/* Mobile full-screen dialog */}
                     {showFilters && isMobile && (
-                        <div
-                            ref={panelRef}
-                            role="dialog"
-                            aria-modal="true"
-                            aria-labelledby="filters-title"
-                            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end"
-                        >
+                        <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="filters-title" className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end">
                             <div className="w-full h-[85%] bg-zinc-900 border-t border-zinc-700 rounded-t-xl p-4 overflow-auto">
                                 <div className="flex items-center justify-between mb-3">
                                     <h3 id="filters-title" className="text-sm font-semibold text-white">Filtruj wyniki</h3>
@@ -347,30 +334,19 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
                                 <div className="mb-4">
                                     <div className="flex items-center justify-between mb-2">
                                         <p className="text-xs text-gray-300">Platformy</p>
-                                        <button
-                                            type="button"
-                                            onClick={() => setExpandPlatforms((s) => !s)}
-                                            className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
-                                        >
-                                            <ChevronDown
-                                                className={`w-4 h-4 transition-transform ${expandPlatforms ? "rotate-180" : ""}`}
-                                            />
+                                        <button type="button" onClick={() => setExpandPlatforms((s) => !s)} className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600">
+                                            <ChevronDown className={`w-4 h-4 transition-transform ${expandPlatforms ? "rotate-180" : ""}`} />
                                         </button>
                                     </div>
                                     {expandPlatforms && (
                                         <div className="grid grid-cols-1 gap-3 pr-1">
                                             {PLATFORMS.map((p) => (
                                                 <label key={p.name} className="flex items-center gap-3 text-base text-gray-200 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedPlatforms.includes(p.name)}
-                                                        onChange={() => toggleSelection(p.name, selectedPlatforms, setSelectedPlatforms)}
-                                                        className="accent-red-600 w-5 h-5"
-                                                    />
+                                                    <input type="checkbox" checked={selectedPlatforms.includes(p.name)} onChange={() => toggleSelection(p.name, selectedPlatforms, setSelectedPlatforms)} className="accent-red-600 w-5 h-5" />
                                                     <span className="flex items-center gap-2">
-                                                        <span className={`w-4 h-4 rounded-sm ${p.color}`} />
+                            <span className={`w-4 h-4 rounded-sm ${p.color}`} />
                                                         {p.name}
-                                                    </span>
+                          </span>
                                                 </label>
                                             ))}
                                         </div>
@@ -381,26 +357,15 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
                                 <div className="mb-4">
                                     <div className="flex items-center justify-between mb-2">
                                         <p className="text-xs text-gray-300">Kategorie</p>
-                                        <button
-                                            type="button"
-                                            onClick={() => setExpandCategories((s) => !s)}
-                                            className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
-                                        >
-                                            <ChevronDown
-                                                className={`w-4 h-4 transition-transform ${expandCategories ? "rotate-180" : ""}`}
-                                            />
+                                        <button type="button" onClick={() => setExpandCategories((s) => !s)} className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600">
+                                            <ChevronDown className={`w-4 h-4 transition-transform ${expandCategories ? "rotate-180" : ""}`} />
                                         </button>
                                     </div>
                                     {expandCategories && (
                                         <div className="grid grid-cols-1 gap-3 pr-1">
                                             {MOVIE_CATEGORIES.map((c) => (
                                                 <label key={c} className="flex items-center gap-3 text-base text-gray-200 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedCategories.includes(c)}
-                                                        onChange={() => toggleSelection(c, selectedCategories, setSelectedCategories)}
-                                                        className="accent-red-600 w-5 h-5"
-                                                    />
+                                                    <input type="checkbox" checked={selectedCategories.includes(c)} onChange={() => toggleSelection(c, selectedCategories, setSelectedCategories)} className="accent-red-600 w-5 h-5" />
                                                     {c}
                                                 </label>
                                             ))}
@@ -412,14 +377,8 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
                                 <div className="mb-6">
                                     <div className="flex items-center justify-between mb-2">
                                         <p className="text-xs text-gray-300">Reżyserzy</p>
-                                        <button
-                                            type="button"
-                                            onClick={() => setExpandDirectors((s) => !s)}
-                                            className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
-                                        >
-                                            <ChevronDown
-                                                className={`w-4 h-4 transition-transform ${expandDirectors ? "rotate-180" : ""}`}
-                                            />
+                                        <button type="button" onClick={() => setExpandDirectors((s) => !s)} className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600">
+                                            <ChevronDown className={`w-4 h-4 transition-transform ${expandDirectors ? "rotate-180" : ""}`} />
                                         </button>
                                     </div>
                                     {expandDirectors && (
@@ -427,12 +386,7 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
                                             {directors.length > 0 ? (
                                                 directors.map((d) => (
                                                     <label key={d} className="flex items-center gap-3 text-base text-gray-200 cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selectedDirectors.includes(d)}
-                                                            onChange={() => toggleSelection(d, selectedDirectors, setSelectedDirectors)}
-                                                            className="accent-red-600 w-5 h-5"
-                                                        />
+                                                        <input type="checkbox" checked={selectedDirectors.includes(d)} onChange={() => toggleSelection(d, selectedDirectors, setSelectedDirectors)} className="accent-red-600 w-5 h-5" />
                                                         {d}
                                                     </label>
                                                 ))
@@ -464,24 +418,13 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-4">
-                    {/* Pozostałe narzędzia */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={toggleFontSize}
-                        className="text-gray-400 hover:text-white hover:bg-white/10"
-                        title="Zmień wielkość czcionki"
-                    >
+                    <FavoriteButton onSelect={(id) => onSelectFavorite?.(id)} />
+
+                    <Button variant="ghost" size="icon" onClick={toggleFontSize} className="text-gray-400 hover:text-white hover:bg-white/10" title="Zmień wielkość czcionki">
                         <Type className="w-5 h-5" />
                     </Button>
 
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={toggleTheme}
-                        className="text-gray-400 hover:text-white hover:bg-white/10"
-                        title={isDarkMode ? "Przełącz na tryb jasny" : "Przełącz na tryb ciemny"}
-                    >
+                    <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-gray-400 hover:text-white hover:bg-white/10" title={isDarkMode ? "Przełącz na tryb jasny" : "Przełącz na tryb ciemny"}>
                         {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                     </Button>
                 </div>
@@ -489,4 +432,3 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
         </nav>
     );
 }
-//k
