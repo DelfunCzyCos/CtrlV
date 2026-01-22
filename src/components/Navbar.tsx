@@ -1,9 +1,9 @@
-import { ArrowLeft, Sun, Moon, Type, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Type, SlidersHorizontal, ChevronDown, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useState, useRef, useEffect } from "react";
 import { PLATFORMS, categories as MOVIE_CATEGORIES, movies } from "../data/movies";
-//dodaj
+
 interface NavbarProps {
     onBack?: () => void;
     showBack?: boolean;
@@ -27,6 +27,19 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
 
     const panelRef = useRef<HTMLDivElement | null>(null);
     const buttonRef = useRef<HTMLButtonElement | null>(null);
+    const closeBtnRef = useRef<HTMLButtonElement | null>(null);
+
+    // Mobile detection for responsive behavior (matches Tailwind's md breakpoint ~768px)
+    const [isMobile, setIsMobile] = useState<boolean>(() => {
+        if (typeof window === "undefined") return false;
+        return window.innerWidth < 768;
+    });
+
+    useEffect(() => {
+        const onResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener("resize", onResize);
+        return () => window.removeEventListener("resize", onResize);
+    }, []);
 
     // Extract unique directors from movies data
     const directors = Array.from(new Set(movies.map((m) => m.director))).filter(Boolean) as string[];
@@ -60,6 +73,19 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
         document.addEventListener("keydown", onKey);
         return () => document.removeEventListener("keydown", onKey);
     }, [showFilters]);
+
+    // When opening mobile panel: prevent body scroll and focus close button
+    useEffect(() => {
+        if (showFilters && isMobile) {
+            document.body.classList.add("overflow-hidden");
+            // small timeout to ensure panel is in DOM
+            setTimeout(() => closeBtnRef.current?.focus(), 0);
+        } else {
+            document.body.classList.remove("overflow-hidden");
+        }
+        // cleanup on unmount
+        return () => document.body.classList.remove("overflow-hidden");
+    }, [showFilters, isMobile]);
 
     const toggleTheme = () => {
         setIsDarkMode(!isDarkMode);
@@ -132,17 +158,149 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
                 </div>
 
                 <div className="flex-1 max-w-2xl relative flex items-center gap-2">
-                    <Input
-                        className="flex-1 bg-zinc-800 border-zinc-700 text-white placeholder:text-gray-400 focus-visible:ring-red-600 rounded-lg h-10 md:h-12 text-base"
-                        placeholder="Szukaj filmów, seriali, gatunków..."
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                                onSearch(inputValue);
-                            }
-                        }}
-                    />
+                    {/* Input wrapper (relative) - panel rendered inside so it opens under the search input */}
+                    <div className="relative flex-1">
+                        <Input
+                            className="w-full bg-zinc-800 border-zinc-700 text-white placeholder:text-gray-400 focus-visible:ring-red-600 rounded-lg h-10 md:h-12 text-base"
+                            placeholder="Szukaj filmów, seriali, gatunków..."
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    onSearch(inputValue);
+                                }
+                            }}
+                        />
+
+                        {/* Desktop panel — positioned under the input (left-0, top-full) */}
+                        {showFilters && !isMobile && (
+                            <div
+                                ref={panelRef}
+                                id="filters-panel"
+                                role="menu"
+                                aria-labelledby="filters-toggle"
+                                className="absolute top-full left-0 mt-2 w-full md:w-96 bg-zinc-900 border border-zinc-700 rounded-lg p-4 shadow-lg z-50"
+                            >
+                                <h3 className="text-sm font-semibold text-white mb-3">Filtruj wyniki</h3>
+
+                                {/* PLATFORMS SECTION */}
+                                <div className="mb-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-xs text-gray-300">Platformy</p>
+                                        <button
+                                            type="button"
+                                            onClick={() => setExpandPlatforms((s) => !s)}
+                                            className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
+                                        >
+                                            <ChevronDown
+                                                className={`w-4 h-4 transition-transform ${expandPlatforms ? "rotate-180" : ""}`}
+                                            />
+                                        </button>
+                                    </div>
+                                    {expandPlatforms && (
+                                        <div className="grid grid-cols-1 gap-2 pr-1 max-h-48 overflow-auto">
+                                            {PLATFORMS.map((p) => (
+                                                <label key={p.name} className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedPlatforms.includes(p.name)}
+                                                        onChange={() => toggleSelection(p.name, selectedPlatforms, setSelectedPlatforms)}
+                                                        className="accent-red-600 w-4 h-4"
+                                                    />
+                                                    <span className="flex items-center gap-2">
+                                                        <span className={`w-3 h-3 rounded-sm ${p.color}`} />
+                                                        {p.name}
+                                                    </span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* CATEGORIES SECTION */}
+                                <div className="mb-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-xs text-gray-300">Kategorie</p>
+                                        <button
+                                            type="button"
+                                            onClick={() => setExpandCategories((s) => !s)}
+                                            className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
+                                        >
+                                            <ChevronDown
+                                                className={`w-4 h-4 transition-transform ${expandCategories ? "rotate-180" : ""}`}
+                                            />
+                                        </button>
+                                    </div>
+                                    {expandCategories && (
+                                        <div className="grid grid-cols-1 gap-2 pr-1 max-h-48 overflow-auto">
+                                            {MOVIE_CATEGORIES.map((c) => (
+                                                <label key={c} className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedCategories.includes(c)}
+                                                        onChange={() => toggleSelection(c, selectedCategories, setSelectedCategories)}
+                                                        className="accent-red-600 w-4 h-4"
+                                                    />
+                                                    {c}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* DIRECTORS SECTION */}
+                                <div className="mb-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-xs text-gray-300">Reżyserzy</p>
+                                        <button
+                                            type="button"
+                                            onClick={() => setExpandDirectors((s) => !s)}
+                                            className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
+                                        >
+                                            <ChevronDown
+                                                className={`w-4 h-4 transition-transform ${expandDirectors ? "rotate-180" : ""}`}
+                                            />
+                                        </button>
+                                    </div>
+                                    {expandDirectors && (
+                                        <div className="grid grid-cols-1 gap-2 pr-1 max-h-48 overflow-auto">
+                                            {directors.length > 0 ? (
+                                                directors.map((d) => (
+                                                    <label key={d} className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedDirectors.includes(d)}
+                                                            onChange={() => toggleSelection(d, selectedDirectors, setSelectedDirectors)}
+                                                            className="accent-red-600 w-4 h-4"
+                                                        />
+                                                        {d}
+                                                    </label>
+                                                ))
+                                            ) : (
+                                                <p className="text-xs text-gray-400">Brak zdefiniowanych reżyserów</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center justify-between gap-2 mt-3">
+                                    <Button variant="ghost" onClick={clearFilters} className="text-gray-300 hover:bg-white/5 h-8 px-3 text-xs">
+                                        Wyczyść
+                                    </Button>
+                                    <div className="flex items-center gap-2">
+                                        <Button variant="secondary" onClick={() => setShowFilters(false)} className="h-8 px-3 text-xs">
+                                            Anuluj
+                                        </Button>
+                                        <Button onClick={applyFilters} className="bg-red-600 hover:bg-red-700 h-8 px-3 text-xs">
+                                            Zastosuj
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Search button — to the right of the input */}
                     <Button
                         onClick={() => onSearch(inputValue)}
                         className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 h-10 md:h-12"
@@ -150,128 +308,155 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
                         Szukaj
                     </Button>
 
-                    {/* Filters panel anchored to the search area */}
-                    {showFilters && (
+                    {/* Filter button — immediately to the right of the Search button (square), highlighted red when open */}
+                    <button
+                        ref={buttonRef}
+                        id="filters-toggle"
+                        type="button"
+                        onClick={() => setShowFilters((s) => !s)}
+                        aria-expanded={showFilters}
+                        aria-controls="filters-panel"
+                        title="Filtry"
+                        className={`ml-2 flex items-center justify-center w-10 h-10 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-600 ${
+                            showFilters ? "bg-red-600 text-white shadow" : "bg-transparent text-gray-300 hover:bg-white/5"
+                        }`}
+                    >
+                        <SlidersHorizontal className="w-5 h-5" />
+                    </button>
+
+                    {/* Mobile full-screen dialog */}
+                    {showFilters && isMobile && (
                         <div
                             ref={panelRef}
-                            id="filters-panel"
-                            role="menu"
-                            aria-labelledby="filters-toggle"
-                            className="absolute top-full right-0 mt-2 w-80 bg-zinc-900 border border-zinc-700 rounded-lg p-4 shadow-lg z-50"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="filters-title"
+                            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end"
                         >
-                            <h3 className="text-sm font-semibold text-white mb-3">Filtruj wyniki</h3>
-
-                            {/* PLATFORMS SECTION */}
-                            <div className="mb-3">
-                                <div className="flex items-center justify-between mb-2">
-                                    <p className="text-xs text-gray-300">Platformy</p>
-                                    <button
-                                        type="button"
-                                        onClick={() => setExpandPlatforms((s) => !s)}
-                                        className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
-                                    >
-                                        <ChevronDown
-                                            className={`w-4 h-4 transition-transform ${expandPlatforms ? "rotate-180" : ""}`}
-                                        />
-                                    </button>
-                                </div>
-                                {expandPlatforms && (
-                                    <div className="grid grid-cols-1 gap-2 pr-1 max-h-48 overflow-auto">
-                                        {PLATFORMS.map((p) => (
-                                            <label key={p.name} className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedPlatforms.includes(p.name)}
-                                                    onChange={() => toggleSelection(p.name, selectedPlatforms, setSelectedPlatforms)}
-                                                    className="accent-red-600 w-4 h-4"
-                                                />
-                                                <span className="flex items-center gap-2">
-                                                    <span className={`w-3 h-3 rounded-sm ${p.color}`} />
-                                                    {p.name}
-                                                </span>
-                                            </label>
-                                        ))}
+                            <div className="w-full h-[85%] bg-zinc-900 border-t border-zinc-700 rounded-t-xl p-4 overflow-auto">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 id="filters-title" className="text-sm font-semibold text-white">Filtruj wyniki</h3>
+                                    <div className="flex items-center gap-2">
+                                        <Button ref={closeBtnRef} variant="ghost" size="icon" onClick={() => setShowFilters(false)} className="text-gray-300">
+                                            <X className="w-4 h-4" />
+                                        </Button>
                                     </div>
-                                )}
-                            </div>
-
-                            {/* CATEGORIES SECTION */}
-                            <div className="mb-3">
-                                <div className="flex items-center justify-between mb-2">
-                                    <p className="text-xs text-gray-300">Kategorie</p>
-                                    <button
-                                        type="button"
-                                        onClick={() => setExpandCategories((s) => !s)}
-                                        className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
-                                    >
-                                        <ChevronDown
-                                            className={`w-4 h-4 transition-transform ${expandCategories ? "rotate-180" : ""}`}
-                                        />
-                                    </button>
                                 </div>
-                                {expandCategories && (
-                                    <div className="grid grid-cols-1 gap-2 pr-1 max-h-48 overflow-auto">
-                                        {MOVIE_CATEGORIES.map((c) => (
-                                            <label key={c} className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedCategories.includes(c)}
-                                                    onChange={() => toggleSelection(c, selectedCategories, setSelectedCategories)}
-                                                    className="accent-red-600 w-4 h-4"
-                                                />
-                                                {c}
-                                            </label>
-                                        ))}
+
+                                {/* PLATFORMS */}
+                                <div className="mb-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-xs text-gray-300">Platformy</p>
+                                        <button
+                                            type="button"
+                                            onClick={() => setExpandPlatforms((s) => !s)}
+                                            className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
+                                        >
+                                            <ChevronDown
+                                                className={`w-4 h-4 transition-transform ${expandPlatforms ? "rotate-180" : ""}`}
+                                            />
+                                        </button>
                                     </div>
-                                )}
-                            </div>
-
-                            {/* DIRECTORS SECTION */}
-                            <div className="mb-3">
-                                <div className="flex items-center justify-between mb-2">
-                                    <p className="text-xs text-gray-300">Reżyserzy</p>
-                                    <button
-                                        type="button"
-                                        onClick={() => setExpandDirectors((s) => !s)}
-                                        className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
-                                    >
-                                        <ChevronDown
-                                            className={`w-4 h-4 transition-transform ${expandDirectors ? "rotate-180" : ""}`}
-                                        />
-                                    </button>
-                                </div>
-                                {expandDirectors && (
-                                    <div className="grid grid-cols-1 gap-2 pr-1 max-h-48 overflow-auto">
-                                        {directors.length > 0 ? (
-                                            directors.map((d) => (
-                                                <label key={d} className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                                    {expandPlatforms && (
+                                        <div className="grid grid-cols-1 gap-3 pr-1">
+                                            {PLATFORMS.map((p) => (
+                                                <label key={p.name} className="flex items-center gap-3 text-base text-gray-200 cursor-pointer">
                                                     <input
                                                         type="checkbox"
-                                                        checked={selectedDirectors.includes(d)}
-                                                        onChange={() => toggleSelection(d, selectedDirectors, setSelectedDirectors)}
-                                                        className="accent-red-600 w-4 h-4"
+                                                        checked={selectedPlatforms.includes(p.name)}
+                                                        onChange={() => toggleSelection(p.name, selectedPlatforms, setSelectedPlatforms)}
+                                                        className="accent-red-600 w-5 h-5"
                                                     />
-                                                    {d}
+                                                    <span className="flex items-center gap-2">
+                                                        <span className={`w-4 h-4 rounded-sm ${p.color}`} />
+                                                        {p.name}
+                                                    </span>
                                                 </label>
-                                            ))
-                                        ) : (
-                                            <p className="text-xs text-gray-400">Brak zdefiniowanych reżyserów</p>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
 
-                            <div className="flex items-center justify-between gap-2 mt-3">
-                                <Button variant="ghost" onClick={clearFilters} className="text-gray-300 hover:bg-white/5 h-8 px-3 text-xs">
-                                    Wyczyść
-                                </Button>
-                                <div className="flex items-center gap-2">
-                                    <Button variant="secondary" onClick={() => setShowFilters(false)} className="h-8 px-3 text-xs">
-                                        Anuluj
-                                    </Button>
-                                    <Button onClick={applyFilters} className="bg-red-600 hover:bg-red-700 h-8 px-3 text-xs">
-                                        Zastosuj
-                                    </Button>
+                                {/* CATEGORIES */}
+                                <div className="mb-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-xs text-gray-300">Kategorie</p>
+                                        <button
+                                            type="button"
+                                            onClick={() => setExpandCategories((s) => !s)}
+                                            className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
+                                        >
+                                            <ChevronDown
+                                                className={`w-4 h-4 transition-transform ${expandCategories ? "rotate-180" : ""}`}
+                                            />
+                                        </button>
+                                    </div>
+                                    {expandCategories && (
+                                        <div className="grid grid-cols-1 gap-3 pr-1">
+                                            {MOVIE_CATEGORIES.map((c) => (
+                                                <label key={c} className="flex items-center gap-3 text-base text-gray-200 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedCategories.includes(c)}
+                                                        onChange={() => toggleSelection(c, selectedCategories, setSelectedCategories)}
+                                                        className="accent-red-600 w-5 h-5"
+                                                    />
+                                                    {c}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* DIRECTORS */}
+                                <div className="mb-6">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-xs text-gray-300">Reżyserzy</p>
+                                        <button
+                                            type="button"
+                                            onClick={() => setExpandDirectors((s) => !s)}
+                                            className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
+                                        >
+                                            <ChevronDown
+                                                className={`w-4 h-4 transition-transform ${expandDirectors ? "rotate-180" : ""}`}
+                                            />
+                                        </button>
+                                    </div>
+                                    {expandDirectors && (
+                                        <div className="grid grid-cols-1 gap-3 pr-1">
+                                            {directors.length > 0 ? (
+                                                directors.map((d) => (
+                                                    <label key={d} className="flex items-center gap-3 text-base text-gray-200 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedDirectors.includes(d)}
+                                                            onChange={() => toggleSelection(d, selectedDirectors, setSelectedDirectors)}
+                                                            className="accent-red-600 w-5 h-5"
+                                                        />
+                                                        {d}
+                                                    </label>
+                                                ))
+                                            ) : (
+                                                <p className="text-xs text-gray-400">Brak zdefiniowanych reżyserów</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="sticky bottom-0 left-0 right-0 bg-gradient-to-t from-zinc-900/40 pt-3">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <Button variant="ghost" onClick={clearFilters} className="text-gray-300 hover:bg-white/5 h-10 px-4">
+                                            Wyczyść
+                                        </Button>
+                                        <div className="flex items-center gap-2">
+                                            <Button variant="secondary" onClick={() => setShowFilters(false)} className="h-10 px-4">
+                                                Anuluj
+                                            </Button>
+                                            <Button onClick={applyFilters} className="bg-red-600 hover:bg-red-700 h-10 px-4">
+                                                Zastosuj
+                                            </Button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -279,18 +464,7 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-4">
-                    {/* Filter button */}
-                    <Button
-                        ref={buttonRef}
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setShowFilters((s) => !s)}
-                        className={`hover:text-white hover:bg-white/10 z-10 ${showFilters ? 'text-red-600 bg-white/10' : 'text-gray-400'}`}
-                        title="Filtry"
-                    >
-                        <SlidersHorizontal className="w-5 h-5" />
-                    </Button>
-
+                    {/* Pozostałe narzędzia */}
                     <Button
                         variant="ghost"
                         size="icon"
