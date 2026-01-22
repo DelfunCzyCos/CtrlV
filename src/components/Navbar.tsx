@@ -1,4 +1,4 @@
-import { Search, ArrowLeft, Sun, Moon, Type, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { ArrowLeft, Sun, Moon, Type, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useState, useRef, useEffect } from "react";
@@ -7,10 +7,12 @@ import { PLATFORMS, categories as MOVIE_CATEGORIES, movies } from "../data/movie
 interface NavbarProps {
     onBack?: () => void;
     showBack?: boolean;
+    onSearch: (query: string) => void;
     onFiltersChange?: (filters: { platforms: string[]; categories: string[]; directors: string[] }) => void;
 }
 
-export function Navbar({ onBack, showBack, onFiltersChange }: NavbarProps) {
+export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarProps) {
+    const [inputValue, setInputValue] = useState("");
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [showFilters, setShowFilters] = useState(false);
 
@@ -18,7 +20,7 @@ export function Navbar({ onBack, showBack, onFiltersChange }: NavbarProps) {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [selectedDirectors, setSelectedDirectors] = useState<string[]>([]);
 
-    // Section expand state (controls whether the options are rendered at all)
+    // Section expand state
     const [expandPlatforms, setExpandPlatforms] = useState(false);
     const [expandCategories, setExpandCategories] = useState(false);
     const [expandDirectors, setExpandDirectors] = useState(false);
@@ -61,7 +63,14 @@ export function Navbar({ onBack, showBack, onFiltersChange }: NavbarProps) {
 
     const toggleTheme = () => {
         setIsDarkMode(!isDarkMode);
-        document.documentElement.classList.toggle("light-theme");
+        // In a real app, this would toggle a class on document.documentElement
+        if (isDarkMode) {
+            document.documentElement.classList.remove("dark");
+            document.documentElement.classList.add("light");
+        } else {
+            document.documentElement.classList.remove("light");
+            document.documentElement.classList.add("dark");
+        }
     };
 
     const toggleFontSize = () => {
@@ -81,6 +90,7 @@ export function Navbar({ onBack, showBack, onFiltersChange }: NavbarProps) {
         setSelectedCategories([]);
         setSelectedDirectors([]);
         buttonRef.current?.focus();
+        if (onFiltersChange) onFiltersChange({ platforms: [], categories: [], directors: [] });
     };
 
     const applyFilters = () => {
@@ -112,6 +122,8 @@ export function Navbar({ onBack, showBack, onFiltersChange }: NavbarProps) {
                             onClick={(e) => {
                                 e.preventDefault();
                                 if (onBack) onBack();
+                                setInputValue("");
+                                onSearch("");
                             }}
                         >
                             STREAM
@@ -119,24 +131,33 @@ export function Navbar({ onBack, showBack, onFiltersChange }: NavbarProps) {
                     </div>
                 </div>
 
-                <div className="flex-1 max-w-xl relative hidden sm:block">
-                    {/* Search icon (left) */}
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-
-                    {/* Input with extra right padding so filter button doesn't overlap */}
+                <div className="flex-1 max-w-2xl relative flex items-center gap-2">
                     <Input
-                        className="w-full pl-10 pr-14 bg-zinc-800 border-zinc-700 text-white placeholder:text-gray-400 focus-visible:ring-red-600 rounded-lg h-10 md:h-12 text-base"
+                        className="flex-1 bg-zinc-800 border-zinc-700 text-white placeholder:text-gray-400 focus-visible:ring-red-600 rounded-lg h-10 md:h-12 text-base"
                         placeholder="Szukaj filmów, seriali, gatunków..."
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                onSearch(inputValue);
+                            }
+                        }}
                     />
+                    <Button
+                        onClick={() => onSearch(inputValue)}
+                        className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 h-10 md:h-12"
+                    >
+                        Szukaj
+                    </Button>
 
-                    {/* Filters panel (opens anchored to the right of the search area) */}
+                    {/* Filters panel anchored to the search area */}
                     {showFilters && (
                         <div
                             ref={panelRef}
                             id="filters-panel"
                             role="menu"
                             aria-labelledby="filters-toggle"
-                            className="absolute right-0 mt-2 w-80 bg-zinc-900 border border-zinc-700 rounded-lg p-4 shadow-lg z-50"
+                            className="absolute top-full right-0 mt-2 w-80 bg-zinc-900 border border-zinc-700 rounded-lg p-4 shadow-lg z-50"
                         >
                             <h3 className="text-sm font-semibold text-white mb-3">Filtruj wyniki</h3>
 
@@ -144,35 +165,25 @@ export function Navbar({ onBack, showBack, onFiltersChange }: NavbarProps) {
                             <div className="mb-3">
                                 <div className="flex items-center justify-between mb-2">
                                     <p className="text-xs text-gray-300">Platformy</p>
-
-                                    {/* Icon-only toggle */}
                                     <button
                                         type="button"
                                         onClick={() => setExpandPlatforms((s) => !s)}
                                         className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
-                                        aria-expanded={expandPlatforms}
-                                        aria-controls="platforms-list"
-                                        aria-label={expandPlatforms ? "Zwiń platformy" : "Rozwiń platformy"}
                                     >
                                         <ChevronDown
                                             className={`w-4 h-4 transition-transform ${expandPlatforms ? "rotate-180" : ""}`}
                                         />
                                     </button>
                                 </div>
-
-                                {/* Render options only when expanded to keep them completely hidden when collapsed */}
                                 {expandPlatforms && (
-                                    <div
-                                        id="platforms-list"
-                                        className="grid grid-cols-1 gap-2 pr-1 max-h-48 overflow-auto"
-                                    >
+                                    <div className="grid grid-cols-1 gap-2 pr-1 max-h-48 overflow-auto">
                                         {PLATFORMS.map((p) => (
-                                            <label key={p.name} className="flex items-center gap-2 text-sm text-gray-200">
+                                            <label key={p.name} className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedPlatforms.includes(p.name)}
                                                     onChange={() => toggleSelection(p.name, selectedPlatforms, setSelectedPlatforms)}
-                                                    className="accent-red-600"
+                                                    className="accent-red-600 w-4 h-4"
                                                 />
                                                 <span className="flex items-center gap-2">
                                                     <span className={`w-3 h-3 rounded-sm ${p.color}`} />
@@ -188,34 +199,25 @@ export function Navbar({ onBack, showBack, onFiltersChange }: NavbarProps) {
                             <div className="mb-3">
                                 <div className="flex items-center justify-between mb-2">
                                     <p className="text-xs text-gray-300">Kategorie</p>
-
-                                    {/* Icon-only toggle */}
                                     <button
                                         type="button"
                                         onClick={() => setExpandCategories((s) => !s)}
                                         className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
-                                        aria-expanded={expandCategories}
-                                        aria-controls="categories-list"
-                                        aria-label={expandCategories ? "Zwiń kategorie" : "Rozwiń kategorie"}
                                     >
                                         <ChevronDown
                                             className={`w-4 h-4 transition-transform ${expandCategories ? "rotate-180" : ""}`}
                                         />
                                     </button>
                                 </div>
-
                                 {expandCategories && (
-                                    <div
-                                        id="categories-list"
-                                        className="grid grid-cols-1 gap-2 pr-1 max-h-48 overflow-auto"
-                                    >
+                                    <div className="grid grid-cols-1 gap-2 pr-1 max-h-48 overflow-auto">
                                         {MOVIE_CATEGORIES.map((c) => (
-                                            <label key={c} className="flex items-center gap-2 text-sm text-gray-200">
+                                            <label key={c} className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedCategories.includes(c)}
                                                     onChange={() => toggleSelection(c, selectedCategories, setSelectedCategories)}
-                                                    className="accent-red-600"
+                                                    className="accent-red-600 w-4 h-4"
                                                 />
                                                 {c}
                                             </label>
@@ -228,35 +230,26 @@ export function Navbar({ onBack, showBack, onFiltersChange }: NavbarProps) {
                             <div className="mb-3">
                                 <div className="flex items-center justify-between mb-2">
                                     <p className="text-xs text-gray-300">Reżyserzy</p>
-
-                                    {/* Icon-only toggle */}
                                     <button
                                         type="button"
                                         onClick={() => setExpandDirectors((s) => !s)}
                                         className="p-1 text-gray-300 hover:text-white rounded focus:outline-none focus:ring-2 focus:ring-red-600"
-                                        aria-expanded={expandDirectors}
-                                        aria-controls="directors-list"
-                                        aria-label={expandDirectors ? "Zwiń reżyserów" : "Rozwiń reżyserów"}
                                     >
                                         <ChevronDown
                                             className={`w-4 h-4 transition-transform ${expandDirectors ? "rotate-180" : ""}`}
                                         />
                                     </button>
                                 </div>
-
                                 {expandDirectors && (
-                                    <div
-                                        id="directors-list"
-                                        className="grid grid-cols-1 gap-2 pr-1 max-h-48 overflow-auto"
-                                    >
+                                    <div className="grid grid-cols-1 gap-2 pr-1 max-h-48 overflow-auto">
                                         {directors.length > 0 ? (
                                             directors.map((d) => (
-                                                <label key={d} className="flex items-center gap-2 text-sm text-gray-200">
+                                                <label key={d} className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
                                                     <input
                                                         type="checkbox"
                                                         checked={selectedDirectors.includes(d)}
                                                         onChange={() => toggleSelection(d, selectedDirectors, setSelectedDirectors)}
-                                                        className="accent-red-600"
+                                                        className="accent-red-600 w-4 h-4"
                                                     />
                                                     {d}
                                                 </label>
@@ -269,14 +262,16 @@ export function Navbar({ onBack, showBack, onFiltersChange }: NavbarProps) {
                             </div>
 
                             <div className="flex items-center justify-between gap-2 mt-3">
-                                <Button variant="ghost" onClick={clearFilters} className="text-gray-300 hover:bg-white/5">
+                                <Button variant="ghost" onClick={clearFilters} className="text-gray-300 hover:bg-white/5 h-8 px-3 text-xs">
                                     Wyczyść
                                 </Button>
                                 <div className="flex items-center gap-2">
-                                    <Button variant="secondary" onClick={() => setShowFilters(false)}>
+                                    <Button variant="secondary" onClick={() => setShowFilters(false)} className="h-8 px-3 text-xs">
                                         Anuluj
                                     </Button>
-                                    <Button onClick={applyFilters}>Zastosuj</Button>
+                                    <Button onClick={applyFilters} className="bg-red-600 hover:bg-red-700 h-8 px-3 text-xs">
+                                        Zastosuj
+                                    </Button>
                                 </div>
                             </div>
                         </div>
@@ -284,18 +279,14 @@ export function Navbar({ onBack, showBack, onFiltersChange }: NavbarProps) {
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-4">
-                    {/* Filter button placed at the right side of the search bar */}
+                    {/* Filter button */}
                     <Button
                         ref={buttonRef}
                         variant="ghost"
                         size="icon"
                         onClick={() => setShowFilters((s) => !s)}
-                        className="text-gray-400 hover:text-white hover:bg-white/10 z-10"
+                        className={`hover:text-white hover:bg-white/10 z-10 ${showFilters ? 'text-red-600 bg-white/10' : 'text-gray-400'}`}
                         title="Filtry"
-                        aria-label="Filtry"
-                        aria-haspopup="menu"
-                        aria-expanded={showFilters}
-                        aria-controls="filters-panel"
                     >
                         <SlidersHorizontal className="w-5 h-5" />
                     </Button>
