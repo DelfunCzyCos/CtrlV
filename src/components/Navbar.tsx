@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useState, useRef, useEffect } from "react";
 import { PLATFORMS, categories as MOVIE_CATEGORIES, movies } from "../data/movies";
-
+//dodaj
 interface NavbarProps {
     onBack?: () => void;
     showBack?: boolean;
