@@ -489,3 +489,4 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange }: NavbarPr
         </nav>
     );
 }
+//k
