@@ -60,13 +60,24 @@ export const FavoriteButton: React.FC<Props> = ({ onSelect }) => {
                                         <div className="flex-1 min-w-0">
                                             {movie ? (
                                                 <>
-                                                    <button
-                                                        onClick={() => { onSelect?.(String(movie.id)); setOpen(false); }}
-                                                        className="text-sm font-semibold text-white text-left block truncate"
-                                                        title={movie.title}
-                                                    >
-                                                        {movie.title}
-                                                    </button>
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <button
+                                                            onClick={() => { onSelect?.(String(movie.id)); setOpen(false); }}
+                                                            className="text-sm font-semibold text-white text-left block truncate"
+                                                            title={movie.title}
+                                                        >
+                                                            {movie.title}
+                                                        </button>
+
+                                                        {/* PRZYCISK OTWÓRZ */}
+                                                        <button
+                                                            onClick={() => { onSelect?.(String(movie.id)); setOpen(false); }}
+                                                            className="text-xs font-semibold text-red-500 border border-red-500 px-2 py-1 rounded hover:bg-red-500 hover:text-white transition-colors"
+                                                        >
+                                                            Otwórz
+                                                        </button>
+                                                    </div>
+
                                                     <div className="text-xs text-gray-400 mt-1">
                                                         <span>{(movie as any).year ?? it.year ?? "—"}</span>
                                                         <span className="mx-2">•</span>
