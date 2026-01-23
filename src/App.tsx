@@ -1,26 +1,37 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navbar } from "./components/Navbar";
 import { StreamingApps } from "./components/StreamingApps";
 import { MovieDetail } from "./components/MovieDetail";
-import { ContentRow } from "./components/ContentRow"; // We need to modify ContentRow to accept onClick
+import { ContentRow } from "./components/ContentRow";
 import { movies, categories, Movie } from "./data/movies";
 
 export default function App() {
     const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+    const [isDarkMode, setIsDarkMode] = useState(true);
+
+    useEffect(() => {
+        // Dodajemy klasę do <html>
+        if (isDarkMode) {
+            document.documentElement.classList.add("dark");
+            document.documentElement.classList.remove("light");
+        } else {
+            document.documentElement.classList.add("light");
+            document.documentElement.classList.remove("dark");
+        }
+    }, [isDarkMode]);
 
     return (
-        <div className="min-h-screen bg-[#141414] text-foreground font-sans selection:bg-red-500 selection:text-white">
+        <div className={`min-h-screen ${isDarkMode ? "bg-[#141414] text-white" : "bg-white text-black"} font-sans`}>
             <Navbar
                 showBack={!!selectedMovie}
                 onBack={() => setSelectedMovie(null)}
-                onSearch={(q) => {
-                    // tutaj możesz dodać logikę wyszukiwania; na razie pusty handler
-                    console.log("Search query:", q);
-                }}
+                onSearch={(q) => console.log("Search query:", q)}
                 onSelectFavorite={(id: string) => {
                     const m = movies.find((x) => String(x.id) === String(id));
                     if (m) setSelectedMovie(m);
                 }}
+                isDarkMode={isDarkMode}
+                setIsDarkMode={setIsDarkMode}
             />
 
             {selectedMovie ? (
