@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Movie } from "../data/movies"; // dostosuj import jeśli masz inną ścieżkę
+import { Movie } from "../routes/movies"; // dostosuj import jeśli masz inną ścieżkę
 import { Eye, MonitorPlay, Heart, BookmarkPlus, Share2, Link as LinkIcon, Check, Send, ChevronDown } from "lucide-react";
 import { Button } from "./ui/button";
 import { isFavorite as storeIsFavorite, toggleFavorite, subscribeFavorites } from "../lib/favoritesCookie";

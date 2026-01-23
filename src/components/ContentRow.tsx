@@ -1,4 +1,4 @@
-import {Movie} from "../data/movies";
+import {Movie} from "../routes/movies";
 import {MovieCard} from "./MovieCard";
 import {ChevronRight} from "lucide-react";
 

@@ -3,7 +3,7 @@ import { Navbar } from "./components/Navbar";
 import { StreamingApps } from "./components/StreamingApps";
 import { MovieDetail } from "./components/MovieDetail";
 import { ContentRow } from "./components/ContentRow"; // We need to modify ContentRow to accept onClick
-import { movies, categories, Movie } from "./data/movies";
+import { movies, categories, Movie } from "./routes/movies";
 
 export default function App() {
     const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);

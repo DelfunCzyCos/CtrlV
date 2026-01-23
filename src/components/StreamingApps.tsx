@@ -1,4 +1,4 @@
-import { PLATFORMS } from "../data/movies";
+import { PLATFORMS } from "../routes/movies";
 
 export function StreamingApps() {
   return (

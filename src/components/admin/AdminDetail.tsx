@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { movies, Movie, PLATFORMS, Platform } from '../../data/movies';
+import { movies, Movie, PLATFORMS, Platform } from '../../routes/movies';
 import { Eye, MonitorPlay, Save, ArrowLeft, Trash2, Link as LinkIcon, CheckCircle2, Plus, List  } from "lucide-react";
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';

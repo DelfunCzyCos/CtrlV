@@ -2,7 +2,7 @@ import { ArrowLeft, Sun, Moon, Type, SlidersHorizontal, ChevronDown, X } from "l
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useState, useRef, useEffect } from "react";
-import { PLATFORMS, categories as MOVIE_CATEGORIES, movies } from "../data/movies";
+import { PLATFORMS, categories as MOVIE_CATEGORIES, movies } from "../routes/movies";
 import { FavoriteButton } from "./FavoriteButton";
 
 interface NavbarProps {
@@ -43,7 +43,7 @@ export function Navbar({ onBack, showBack, onSearch, onFiltersChange, onSelectFa
         return () => window.removeEventListener("resize", onResize);
     }, []);
 
-    // Extract unique directors from movies data
+    // Extract unique directors from movies routes
     const directors = Array.from(new Set(movies.map((m) => m.director))).filter(Boolean) as string[];
 
     useEffect(() => {

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Heart, X } from "lucide-react";
 import { getFavoritesItems, removeFavorite, subscribeFavorites, type FavoriteItem } from "../lib/favoritesCookie";
-import { movies as allMovies } from "../data/movies";
+import { movies as allMovies } from "../routes/movies";
 
 type Props = {
     onSelect?: (id: string) => void;
